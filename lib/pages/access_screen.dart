@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'successful_access_screen.dart';
+
 class AccessScreen extends StatefulWidget {
   const AccessScreen({super.key});
 
@@ -70,8 +72,15 @@ class _AccessScreenState extends State<AccessScreen> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _submit,
+                  // onPressed: _submit,
                   child: Text("Entrar"),
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(
+                            builder: (context) => SuccessfulAccessScreen(),
+                        ),
+                    );
+                    },
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white, backgroundColor: Colors.blueAccent,
                     padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
