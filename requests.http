@@ -1,0 +1,59 @@
+GET https://desafioflutter-api.modelviewlabs.com
+Author: MVL <candidatos@modelviewlabs.com>
+
+?? status == 204
+?? header content-type == text/plain; charset=utf-8
+?? duration < 999
+
+
+GET http://desafioflutter-api.modelviewlabs.com/ping?query=a
+Author: MVL <candidatos@modelviewlabs.com>
+
+?? status == 200
+?? header content-type == text/plain; charset=utf-8
+?? duration < 999
+?? body includes pong
+
+
+GET https://desafioflutter-api.modelviewlabs.com/random
+Content-Type: application/json
+Author: MVL <candidatos@modelviewlabs.com>
+
+?? status == 200
+?? header content-type == application/json
+?? duration < 6000
+?? body includes password
+
+/// No Delay
+GET https://desafioflutter-api.modelviewlabs.com/random
+Content-Type: application/json
+No-Delay: please
+Author: MVL <candidatos@modelviewlabs.com>
+
+?? status == 200
+?? header content-type == application/json
+?? duration < 500
+?? body includes password
+
+
+/// Invalid payload
+POST https://desafioflutter-api.modelviewlabs.com/validate
+Content-Type: application/json
+Author: MVL <candidatos@modelviewlabs.com>
+
+?? status == 422
+?? header content-type == application/json
+?? duration < 6000
+
+
+POST https://desafioflutter-api.modelviewlabs.com/validate
+Content-Type: application/json
+Author: MVL <candidatos@modelviewlabs.com>
+
+?? status == 202
+?? header content-type == application/json; charset=utf-8
+?? duration < 6000
+?? body includes message
+?? js response.parsedBody.message == Senha válida!
+
+{"password": "Bffaa2ec-31b9"}

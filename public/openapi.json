@@ -1,0 +1,233 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Challenge API",
+    "description": "A dummy challenge API for Flutter app",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://desafioflutter-api.modelviewlabs.com"
+    }
+  ],
+  "tags": [
+    {
+      "name": "/",
+      "description": "root endpoint"
+    },
+    {
+      "name": "ping",
+      "description": "PING + PONG endpoint"
+    },
+    {
+      "name": "random",
+      "description": "Generates random (and valid) passwords"
+    },
+    {
+      "name": "validate",
+      "description": "Validate the password"
+    }
+  ],
+  "components": {
+    "parameters": {
+      "AuthorHeader": {
+        "name": "author",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Optional author header for requests"
+      }
+    },
+    "schemas": {
+      "PasswordSchema": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ValidationSuccess": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "/"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthorHeader"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "tags": [
+          "ping"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthorHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pong response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "pong"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/random": {
+      "get": {
+        "tags": [
+          "random"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthorHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Generates a random password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "password": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "password": "random_password"
+                  }
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed"
+          }
+        }
+      }
+    },
+    "/validate": {
+      "post": {
+        "tags": [
+          "validate"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AuthorHeader"
+          }
+        ],
+        "requestBody": {
+          "description": "Password validation request",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Password is valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationSuccess"
+                },
+                "example": {
+                  "id": "123e4567-e89b-12d3-a456-426614174000",
+                  "message": "Password is valid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid password format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Password format is invalid",
+                  "errors": [
+                    "Password must contain at least 8 characters"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity - Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Invalid request payload"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed"
+          }
+        }
+      }
+    }
+  }
+}
