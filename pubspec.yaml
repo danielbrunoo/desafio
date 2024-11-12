@@ -1,12 +1,14 @@
 name: mvl_desafio
-description: MVL Desafio
-version: 1.0.0
+description: "MVL Desafio"
+version: 1.0.0+1
 publish_to: none
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.5.4
 
 dependencies:
+  flutter:
+    sdk: flutter
   dart_frog: ^1.1.0
   desafio_shared:
     git:
@@ -16,5 +18,12 @@ dependencies:
   shelf_cors_headers: ^0.1.5
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   mocktail: ^1.0.3
   test: ^1.25.5
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
