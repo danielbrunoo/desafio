@@ -12,38 +12,52 @@ class AccessScreen extends StatefulWidget {
 class _AccessScreenState extends State<AccessScreen> {
   bool _obscureText = true;
   final TextEditingController _controller = TextEditingController();
-  final _formKey = GlobalKey<FormState>(); // Chave para o Form
-  bool _isButtonEnabled = false; // Variável para controlar o estado do botão
-  String? _passwordError; // Variável para armazenar o erro da senha
+  final _formKey = GlobalKey<FormState>();
+  bool _isButtonEnabled = false;
 
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Se a validação passar, processa a senha
       final password = _controller.text;
       print("Senha digitada: $password");
 
-      // Aqui, você pode validar a senha (se necessário) antes de navegar para a tela seguinte
-      if (password == "senha_correta") {  // Substitua "senha_correta" pela sua lógica de senha
-        // Se a senha for válida, navega para a tela de sucesso
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SuccessfulAccessScreen()),
-        );
-      } else {
-        // Caso a senha esteja incorreta
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Senha incorreta!')),
-        );
-      }
+      // Se a senha for válida, navega para a tela de sucesso
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SuccessfulAccessScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Senha incorreta!')),
+      );
     }
   }
 
-  // Função para verificar se a senha é válida (não está vazia)
   void _checkPassword() {
     setState(() {
-      _passwordError = _controller.text.isEmpty ? '' : null;
       _isButtonEnabled = _controller.text.isNotEmpty;
     });
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Senha obrigatória';
+    }
+    if (value.length < 8) {
+      return 'A senha precisa ter no mínimo 8 caracteres';
+    }
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'A senha precisa ter pelo menos uma letra maiúscula';
+    }
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'A senha precisa ter pelo menos uma letra minúscula';
+    }
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return 'A senha precisa ter pelo menos um número';
+    }
+    if (!RegExp(r'[!@#\$&*~.,%]').hasMatch(value)) {
+      return 'A senha precisa ter pelo menos um caractere especial';
+    }
+    return null; // Senha válida
   }
 
   @override
@@ -63,12 +77,11 @@ class _AccessScreenState extends State<AccessScreen> {
         child: Container(
           width: MediaQuery.of(context).size.width,
           padding: const EdgeInsets.all(27),
-          child: Form( // Usando Form para validação
+          child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Alterando de TextField para TextFormField
                 TextFormField(
                   controller: _controller,
                   obscureText: _obscureText,
@@ -77,7 +90,7 @@ class _AccessScreenState extends State<AccessScreen> {
                     hintText: "Digite sua senha",
                     border: const OutlineInputBorder(),
                     focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
+                      borderSide: BorderSide(width: 2, color: Colors.blueAccent),
                     ),
                     enabledBorder: const OutlineInputBorder(
                       borderSide: BorderSide(width: 1),
@@ -100,31 +113,15 @@ class _AccessScreenState extends State<AccessScreen> {
                       },
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Senha obrigatória';
-                    }
-                    return null;
-                  },
+                  validator: _validatePassword,
                   onChanged: (value) {
-                    _checkPassword(); // Verifica o estado do campo a cada alteração
+                    _checkPassword();
                   },
-                  autovalidateMode: AutovalidateMode.onUserInteraction, // Garante que a validação seja realizada durante a digitação
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                 ),
-                if (_passwordError != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      _passwordError!,
-                      style: TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _isButtonEnabled ? _submit : null, // Desabilita o botão se não tiver senha
+                  onPressed: _isButtonEnabled ? _submit : null,
                   child: Text("Entrar"),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
