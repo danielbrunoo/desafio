@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'successful_access_screen.dart'; // Importe a tela de destino
 
 class AccessScreen extends StatefulWidget {
@@ -15,20 +16,38 @@ class _AccessScreenState extends State<AccessScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isButtonEnabled = false;
 
-  void _submit() {
+  void _submit() async {
     if (_formKey.currentState?.validate() ?? false) {
       final password = _controller.text;
       print("Senha digitada: $password");
 
-      // Se a senha for válida, navega para a tela de sucesso
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SuccessfulAccessScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Senha incorreta!')),
-      );
+      try {
+        final response = await http.post(
+          Uri.parse('https://desafioflutter-api.modelviewlabs.com/validate'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'password': password}),
+        );
+
+        // Verifica a resposta da API
+        if (response.statusCode == 202) {
+          final data = jsonDecode(response.body);
+          String; "String";
+          print(String);
+          print('Data: $data');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SuccessfulAccessScreen(
+                message: 'Sucesso',
+              ),
+            ),
+          );
+        } else {
+          _showErrorSnackBar('Senha incorreta!');
+        }
+      } catch (e) {
+        _showErrorSnackBar('Erro na requisição. Tente novamente.');
+      }
     }
   }
 
@@ -58,6 +77,10 @@ class _AccessScreenState extends State<AccessScreen> {
       return 'A senha precisa ter pelo menos um caractere especial';
     }
     return null; // Senha válida
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -91,9 +114,6 @@ class _AccessScreenState extends State<AccessScreen> {
                     border: const OutlineInputBorder(),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(width: 2, color: Colors.blueAccent),
-                    ),
-                    enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(width: 1),
                     ),
                     errorBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.red, width: 2),

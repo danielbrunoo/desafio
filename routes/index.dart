@@ -4,7 +4,7 @@ import 'package:mvl_desafio/extension/context_ext.dart';
 /// @Allow(*)
 Response onRequest(RequestContext context) {
   return Response(
-    statusCode: 200,
+    statusCode: 201,
     headers: <String, String>{'ip': context.ip},
   );
 }
