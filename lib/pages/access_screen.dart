@@ -13,49 +13,56 @@ class AccessScreen extends StatefulWidget {
 class _AccessScreenState extends State<AccessScreen> {
   bool _obscureText = true;
   final TextEditingController _controller = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   bool _isButtonEnabled = false;
   String _errorMessage = '';
 
-  Future<void> _submit() async {
+  void _submit() async {
     if (_formKey.currentState?.validate() ?? false) {
-      final String password = _controller.text;
-      print('Senha digitada: $password');
+      final password = _controller.text;
+      print("Senha digitada: $password");
 
       try {
-        final http.Response response = await http.post(
+        final response = await http.post(
           Uri.parse('https://desafioflutter-api.modelviewlabs.com/validate'),
-          headers: <String, String>{'Content-Type': 'application/json'},
-          body: jsonEncode(<String, String>{'password': password}),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'password': password}),
         );
 
-        print('Status da resposta: ${response.statusCode}');
-        print('Corpo da resposta: ${response.body}');
+        print("Status da resposta: ${response.statusCode}");
+        print("Corpo da resposta: ${response.body}");
 
         if (response.statusCode == 202) {
-          final data = jsonDecode(response.body);
-          print('Dados da resposta: $data');
+          // Converte o JSON da resposta em Map<String, dynamic>
+          final Map<String, dynamic> data = jsonDecode(response.body) as Map<String, dynamic>;
 
-          if (data['message'] != null) {
-            print('Senha válida! Acesso bem sucedido.');
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (BuildContext context) => const SuccessfulAccessScreen(
-                  message: '',
-                ),
+          // Transforma o JSON no objeto SuccessModel
+          final success = SuccessModel.fromJson(data);
+
+          print("ID: ${success.id}");
+          print("Mensagem: ${success.message}");
+
+          // Navega para a próxima tela com a mensagem de sucesso
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SuccessfulAccessScreen(
+                message: success.message,
               ),
-            );
-          } else {
-            print("Resposta da API não contém 'message'.");
-            _showErrorSnackBar('Erro na autenticação. Tente novamente.');
-          }
+            ),
+          );
+        } else if (response.statusCode == 400) {
+          // Tratamento do código 400
+          final Map<String, dynamic> data = jsonDecode(response.body) as Map<String, dynamic>;
+          print("Erro da API: ${data['message']}");
+
+          _showErrorSnackBar(data['message'] as String);
         } else {
-          print('Resposta da API com erro: ${response.statusCode}');
+          // Outros erros
           _showErrorSnackBar('Erro na autenticação. Tente novamente.');
         }
       } catch (e) {
-        print('Erro na requisição: $e');
+        print("Erro na requisição: $e");
         _showErrorSnackBar('Erro na autenticação. Tente novamente.');
       }
     }
@@ -72,9 +79,8 @@ class _AccessScreenState extends State<AccessScreen> {
       _errorMessage = message;
     });
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-    print('Mensagem de erro: $message');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    print("Mensagem de erro: $message");
   }
 
   @override
@@ -98,19 +104,20 @@ class _AccessScreenState extends State<AccessScreen> {
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
+              children: [
                 TextFormField(
                   controller: _controller,
                   obscureText: _obscureText,
                   decoration: InputDecoration(
-                    labelText: 'Senha',
-                    hintText: 'Digite sua senha',
+                    labelText: "Senha",
+                    hintText: "Digite sua senha",
                     border: const OutlineInputBorder(),
                     focusedBorder: const OutlineInputBorder(
-                      borderSide:
-                          BorderSide(width: 2, color: Colors.blueAccent),
+                      borderSide: BorderSide(width: 2, color: Colors.blueAccent),
                     ),
-                    enabledBorder: const OutlineInputBorder(),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(width: 1),
+                    ),
                     errorBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.red, width: 2),
                     ),
@@ -129,13 +136,28 @@ class _AccessScreenState extends State<AccessScreen> {
                       },
                     ),
                   ),
-                  validator: (String? value) {
+                  validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Senha obrigatória';
                     }
+                    if (value.length < 8) {
+                      return 'A senha precisa ter no mínimo 8 caracteres';
+                    }
+                    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                      return 'A senha precisa ter pelo menos uma letra maiúscula';
+                    }
+                    if (!RegExp(r'[a-z]').hasMatch(value)) {
+                      return 'A senha precisa ter pelo menos uma letra minúscula';
+                    }
+                    if (!RegExp(r'[0-9]').hasMatch(value)) {
+                      return 'A senha precisa ter pelo menos um número';
+                    }
+                    if (!RegExp(r'[!@#\$&*~.,%]').hasMatch(value)) {
+                      return 'A senha precisa ter pelo menos um caractere especial';
+                    }
                     return null;
                   },
-                  onChanged: (String value) {
+                  onChanged: (value) {
                     _checkPassword();
                   },
                   autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -143,16 +165,15 @@ class _AccessScreenState extends State<AccessScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _isButtonEnabled ? _submit : null,
+                  child: const Text("Entrar"),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.blueAccent,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 15, horizontal: 30),
+                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text("Entrar"),
                 ),
                 if (_errorMessage.isNotEmpty)
                   Padding(
@@ -167,6 +188,23 @@ class _AccessScreenState extends State<AccessScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class SuccessModel {
+  SuccessModel({
+    required this.id,
+    required this.message,
+  });
+
+  final String id;
+  final String message;
+
+  factory SuccessModel.fromJson(Map<String, dynamic> json) {
+    return SuccessModel(
+      id: json['id'] as String,
+      message: json['message'] as String,
     );
   }
 }
