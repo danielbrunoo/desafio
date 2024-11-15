@@ -1,38 +1,52 @@
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 
 class SuccessfulAccessScreen extends StatelessWidget {
+  const SuccessfulAccessScreen({super.key, required this.message});
   final String message;
 
-  const SuccessfulAccessScreen({super.key, required this.message});
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.greenAccent,
       appBar: AppBar(
-        title: const Text('Sucesso'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.greenAccent,
       ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: Text(
-            message,
-            style: TextStyle(
-                color: Colors.white,
+            'Password is valid',
+            style: const TextStyle(
+                color: Colors.white70,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                shadows: [
+                shadows: <Shadow>[
                   Shadow(
                     blurRadius: 10,
                     offset: Offset(1.0, 1.0),
                     // color: Colors.black.withOpacity(0.5),
                   )
-                ]
-            ),
+                ]),
           ),
         ),
       ),
     );
   }
+
+}
+
+class SuccessModel {
+  SuccessModel({
+    required this.id,
+    required this.message,
+  });
+
+  String id;
+  String message;
+
+
 }
