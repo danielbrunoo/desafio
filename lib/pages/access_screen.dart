@@ -33,37 +33,46 @@ class _AccessScreenState extends State<AccessScreen> {
         print("Corpo da resposta: ${response.body}");
 
         if (response.statusCode == 202) {
-          // Converte o JSON da resposta em Map<String, dynamic>
-          final Map<String, dynamic> data = jsonDecode(response.body) as Map<String, dynamic>;
+          final data = jsonDecode(response.body);
 
-          // Transforma o JSON no objeto SuccessModel
-          final success = SuccessModel.fromJson(data);
+          if (data is Map<String, dynamic> &&
+              data.containsKey('id') &&
+              data.containsKey('message')) {
+            try {
+              // Converte os valores de 'id' e 'message' para String
+              final String id = data['id'].toString();
+              final String message = data['message'].toString();
 
-          print("ID: ${success.id}");
-          print("Mensagem: ${success.message}");
+              // Cria o objeto SuccessModel
+              final success = SuccessModel(id: id, message: message);
 
-          // Navega para a próxima tela com a mensagem de sucesso
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SuccessfulAccessScreen(
-                message: success.message,
-              ),
-            ),
-          );
-        } else if (response.statusCode == 400) {
-          // Tratamento do código 400
-          final Map<String, dynamic> data = jsonDecode(response.body) as Map<String, dynamic>;
-          print("Erro da API: ${data['message']}");
+              print("ID: ${success.id}");
+              print("Mensagem: ${success.message}");
 
-          _showErrorSnackBar(data['message'] as String);
-        } else {
-          // Outros erros
-          _showErrorSnackBar('Erro na autenticação. Tente novamente.');
+              // Navega para a próxima tela
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SuccessfulAccessScreen(
+                    id: success.id,
+                    message: success.message,
+                  ),
+                ),
+              );
+            } catch (e) {
+              print("Erro ao criar SuccessModel: $e");
+              _showErrorSnackBar('Erro ao processar os dados da resposta.');
+            }
+          } else {
+            print("Erro: Resposta da API incompleta.");
+            _showErrorSnackBar('Resposta da API está incompleta.');
+          }
         }
+
       } catch (e) {
+        // Tratamento de falhas de comunicação ou outros erros inesperados
         print("Erro na requisição: $e");
-        _showErrorSnackBar('Erro na autenticação. Tente novamente.');
+        _showErrorSnackBar('Erro ao se conectar com o servidor. Tente novamente.');
       }
     }
   }
